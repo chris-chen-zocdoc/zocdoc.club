@@ -1,0 +1,14 @@
+/* body {
+    border: 20px black solid
+} */
+
+.play-note {
+    outline: 10px black solid;
+    transition: outline-width 0.1s ease-out;
+    z-index: 1;
+}
+
+.idle-note {
+    outline: 0px black solid;
+    transition: outline-width 0.1s linear;
+}
