@@ -1,12 +1,22 @@
 console.log('COOL');
 
 function getSearchData() {
-    const searchInput = document.querySelector('data-test="universal-search-text-box"');
+    const searchInput = document.querySelector('[data-test="universal-search-text-box"]');
     const text = searchInput.getAttribute('value');
 
-    return {
-        inputText: text
+    const visitReason = document.querySelector('[data-test="facet-chip-button"]');
+    const specialty = document.querySelector('[data-test="search-seo-header"]');
+
+
+    const t = {
+        inputText: text,
+        visitReason: visitReason.innerText,
+        specialty: specialty ? (specialty.firstChild ? specialty.firstChild.innerText : "") : "",
     };
+
+    console.log(t)
+
+    return t;
 }
 
 function getGrid() {
@@ -27,8 +37,14 @@ function getGrid() {
             reviewCount = parseInt(reviewCountNode.innerHTML.replace('(', '').replace(')', ''))
         } 
 
-        const nextAvailBtn = node.querySelector('[data-test="ap-desktop-content-go-to-day-with-avail-btn"]');
+        let nextAvailBtn = node.querySelector('[data-test="ap-desktop-content-go-to-day-with-avail-btn"]');
+        if(!nextAvailBtn) {
+            nextAvailBtn = node.querySelector('[data-test="ap-desktop-content-preview-doctor-timeslot"]');
+        }
         console.log(nextAvailBtn)
+
+        const name = node.querySelector('[data-test="doctor-card-info-name-full"]');
+        console.log(name)
 
         const rowNodes = node.querySelectorAll('[data-test="ap-desktop-content-grid-row"]');
 
@@ -52,6 +68,7 @@ function getGrid() {
                 data.slot = cell;
                 data.reviewCount = reviewCount;
                 data.nextAvailBtn = nextAvailBtn;
+                data.name = name.innerText;
 
                 row.push(data)
             }
@@ -206,11 +223,10 @@ function createSnare() {
     }
 }
 
-
-function playDrums(grid, startRow, animateCell) {
-    const bassDrum = new Tone.MembraneSynth({
+function makeBassDrum() {
+    const bd = new Tone.MembraneSynth({
         pitchDecay: 0.05,
-        octaves: 4,
+        octaves: 6,
         oscillator: {
             type: "fmsine",
             phase: 140,
@@ -221,15 +237,28 @@ function playDrums(grid, startRow, animateCell) {
         envelope: {
             attack: 0.01,
             decay: 0.74,
-            sustain: 0.71,
+            sustain: 0.91,
             release: 0.05,
             attackCurve: "exponential"
         }
     }).toMaster();
 
+    const distort = new Tone.Distortion(0.8).toMaster();
+    bd.connect(distort)
+    return bd;
+}
+
+
+function playDrums(grid, startRow, animateCell) {
+    if(startRow > grid.length -1){
+        return startRow;
+    }
+
+    const bassDrum = makeBassDrum();
+
     const cymbal = new Tone.MetalSynth(
         {
-            frequency: 100,
+            frequency: 800,
             envelope: {
                 attack: 0.01,
                 decay: .4,
@@ -238,10 +267,20 @@ function playDrums(grid, startRow, animateCell) {
             harmonicity: 5,
             modulationIndex: 32,
             resonance: 1000,
-            octaves: .7 
+            octaves: .7,
         }
     ).toMaster();
     cymbal.volume.value = -18;
+
+    // const filter = new Tone.Filter({
+    //     frequency: 10000
+    // }).toMaster();
+
+    // cymbal.connect(filter)
+
+    const reverb = new Tone.Reverb().toMaster();
+    cymbal.connect(reverb)
+
 
     const snare = createSnare();
 
@@ -251,12 +290,21 @@ function playDrums(grid, startRow, animateCell) {
         events.push(i);
     }
 
+    const beats = [
+        ['8n', '4n', false],
+        ['16n', '8n', true],
+        ['8n', '8n', false],
+        // ['16n', '16n', true],
+    ]
+
+    const beat = beats[grid[startRow][0].name.length % beats.length]
 
     const sequence = new Tone.Sequence(
         (time, col) => {
             if (grid[startRow][col].hasTime) {
-                bassDrum.triggerAttackRelease('G1', '16n', time);
-                animateCell(startRow, col, true)
+                let notes = ['G1', 'F1', 'E1']
+                bassDrum.triggerAttackRelease(notes[grid[startRow][col].name.length % notes.length], beat[0], time);
+                animateCell(startRow, col, true, beat[2])
             } else {
                 animateCell(startRow, col, false)
             }
@@ -265,13 +313,13 @@ function playDrums(grid, startRow, animateCell) {
                 // cymbal.frequency.setValueAtTime(100, time, Math.random() * 0.5 + 0.5);
                 // cymbal.frequency.setValueAtTime(100, time);
                 cymbal.triggerAttack(time)
-                animateCell(startRow+1, col, true)
+                animateCell(startRow+1, col, true, beat[2])
             } else {
                 animateCell(startRow+1, col, false)
             }
 
             if(grid[startRow+2][col].hasTime) {
-                animateCell(startRow+2, col, true)
+                animateCell(startRow+2, col, true, beat[2])
                 snare.noise.triggerAttack(time)
                 snare.poly.triggerAttack(time);
                 // snare.poly.triggerAttackRelease('C2', '16n', time);
@@ -281,7 +329,7 @@ function playDrums(grid, startRow, animateCell) {
             }
         },
         events,
-        '8n'
+        beat[1]
     );
     sequence.start();
 
@@ -289,7 +337,16 @@ function playDrums(grid, startRow, animateCell) {
 }
 
 function playSynths(grid, startRow, animateCell, scale) {
-    const synth = new Tone.PolySynth().toMaster();
+
+    if(startRow > grid.length -1){
+        return startRow;
+    }
+
+    const synth = new Tone.PolySynth(
+        {
+
+        }
+    ).toMaster();
 
     const notes = Tone.Frequency(scale.note).harmonize(scale.intervals)
     console.log(notes.map(s => s.toNote()))
@@ -305,6 +362,15 @@ function playSynths(grid, startRow, animateCell, scale) {
         events.push(i);
     }
 
+    const beats = [
+        ['4n', '4n', false],
+        ['8n', '8n', false],
+        ['4n', '8n', false],
+        ['16n', '8n', false],
+    ]
+
+    const beat = beats[grid[startRow][0].name.length % beats.length]
+
     const sequence = new Tone.Sequence(
         (time, col) => {
             let chord = [];
@@ -312,17 +378,17 @@ function playSynths(grid, startRow, animateCell, scale) {
             for (let i = startRow; i <= last; i++) {
                 if (grid[i][col].hasTime) {
                     chord.push(notes[i - startRow])
-                    animateCell(i, col, true)
+                    animateCell(i, col, true, beat[2])
                 } else {
                     animateCell(i, col, false)
                 }
             }
 
             // console.log(chord);
-            synth.triggerAttackRelease(chord, '4n', time);
+            synth.triggerAttackRelease(chord, beat[0], time);
         },
         events,
-        '4n'
+        beat[1] 
     );
     sequence.start();
 
@@ -330,8 +396,12 @@ function playSynths(grid, startRow, animateCell, scale) {
 }
 
 function playLead(grid, startRow, animateCell, scale){
+    if(startRow > grid.length -1){
+        return startRow;
+    }
+
     const makeSynth = () => {
-        let synth = new Tone.AMSynth({
+        let synth = new Tone.FMSynth({
             "harmonicity" : 2.5,
             "oscillator" : {
                 "type" : "fatsawtooth"
@@ -343,7 +413,7 @@ function playLead(grid, startRow, animateCell, scale){
                 "release" : 0.3
             },
             "modulation" : {
-                "type" : "square"
+                "type" : "sine2"
             },
             "modulationEnvelope" : {
                 "attack" : 0.5,
@@ -355,7 +425,6 @@ function playLead(grid, startRow, animateCell, scale){
 
     // const synth = makeSynth();
 
-    const events = [];
     // const notes = ["C5", "Eb5", "G5", "Bb5"];
     const notes = Tone.Frequency(scale.note).harmonize(scale.intervals)
     console.log(notes.map(s => s.toNote()))
@@ -364,9 +433,33 @@ function playLead(grid, startRow, animateCell, scale){
         synths.push(makeSynth());
     }
 
+    const reverb = new Tone.Reverb().toMaster();
+    reverb.generate()
+
+    const vibrato = new Tone.Vibrato({
+        frequency: 2,
+        depth: 0.1
+    }).toMaster();
+
+    synths.forEach(s => {
+        s.connect(reverb).connect(vibrato)
+        s.volume.value = -6;
+    })
+
+
+    const events = [];
     for (let i = 0; i <= grid[0].length - 1; i++) {
         events.push(i);
     }
+
+    const beats = [
+        ['4n', '4n', false],
+        ['8n', '8n', false],
+        ['4n', '8n', false],
+        ['16n', '8n', true],
+    ]
+
+    const beat = beats[grid[startRow][0].name.length % beats.length]
 
     const sequence = new Tone.Sequence(
         (time, col) => {
@@ -380,8 +473,9 @@ function playLead(grid, startRow, animateCell, scale){
 
                     let synth = synths[i - startRow];
                     let note = notes[i - startRow]
-                    synth.triggerAttackRelease(note, '8n', time);
-                    animateCell(i, col, true)
+                    // synth.triggerAttackRelease(note, '8n', time + ((Math.random() * .5) - .25));
+                    synth.triggerAttackRelease(note, beat[0], time);
+                    animateCell(i, col, true, beat[2])
                 } else {
                     animateCell(i, col, false)
                 }
@@ -396,12 +490,16 @@ function playLead(grid, startRow, animateCell, scale){
             // }
         },
         events,
-        '8n'
+        beat[1]
     );
     sequence.start();
 }
 
 function calculateBpm(grid, startRow, endRow){
+    if(grid.length == 0){
+        return 70;
+    }
+
     let sum = 0;
     let count = 0;
     for(let r = startRow; r <= endRow; r++){
@@ -413,20 +511,62 @@ function calculateBpm(grid, startRow, endRow){
     return Math.max(Math.min(sum/count, 200), 70);
 }
 
-function playGrids(grid, animateCell) {
+function playGrids(grid, searchData, animateCell) {
     console.log('playing', grid);
 
+    let a = 'A'.charCodeAt(0);
+    let diff = 'G'.charCodeAt(0) - a;
+
+    let c;
+    if(searchData.specialty.length > 0){
+
+        let total = 0;
+        for(let i = 0; i < searchData.specialty.length; i++){
+            total += searchData.specialty.charCodeAt(i);
+        }
+
+        let z = total % (diff * 2)
+        console.log('z ', z)
+
+        c = Tone.Frequency('A2').harmonize([z])[0].toNote()
+    } else {
+        c = 'A2'
+    }
+
+    console.log(c);
+
+    const intervals = [
+        [0, 3, 7, 10],
+        [0, 4, 7, 10],
+        // [0, 3, 5, 9, 11],
+        // [0, 4, 8, 11],
+    ]
+
+    let interval = intervals[0]
+    console.log(interval);
+
+    if(searchData.visitReason.length > 0){
+        let total = 0;
+        for(let i = 0; i < searchData.visitReason.length; i++){
+            total += searchData.visitReason.charCodeAt(i);
+        }
+        
+        interval = intervals[total % intervals.length]
+    }
+
     let scale = {
-        note: "C3",
-        // intervals: [0, 4, 7, 10]
-        intervals: [0, 3, 7, 10]
+        note: `${c}`,
+        intervals: interval
     }
 
     const r1 = playDrums(grid, 0, animateCell);
 
     const r2 = playSynths(grid, r1, animateCell, scale);
 
-    scale.note = "D#3"
+    const shifts = [-12, -8, 8, 12, 16, 24]
+    const cool = shifts[searchData.specialty.length % shifts.length]
+
+    scale.note = Tone.Frequency(`${c}`).harmonize([cool])[0].toNote()
     playLead(grid, r2, animateCell, scale)
 
     const bpm = calculateBpm(grid, 0, grid.length-1)
@@ -443,9 +583,9 @@ function fuckYeah() {
     // let grid = createTestGrid();
 
     let grid = getGrid();
+    let searchData = getSearchData();
 
-
-    const animateCell = (r, c, play) => {
+    const animateCell = (r, c, play, fast = false) => {
         const cell = grid[r][c]
 
         if(cell.slot !== undefined && !cell.nextAvailBtn){
@@ -455,25 +595,133 @@ function fuckYeah() {
             setTimeout(() => {
                 cell.slot.classList.remove('play-note')
                 cell.slot.classList.add('idle-note')
-            }, 200);
+            }, fast ? 100: 200);
         }
     }
     
 
-    playGrids(grid, animateCell);
+    playGrids(grid, searchData, animateCell);
+
+    const prefixes = document.querySelectorAll('[data-test="doctor-card-info-name-prefix"]');
+    console.log(prefixes)
+    if(prefixes){
+        for(let i = 0; i < prefixes.length; i++){
+            prefixes[i].innerText = "DJ "
+        }
+    }
+
+
 
     const link = document.createElement('link');
     link.setAttribute('rel', 'stylesheet');
     link.setAttribute('type', 'text/css');
     link.setAttribute('href', 'http://localhost:8000/src/anim.css');
     document.getElementsByTagName('head')[0].appendChild(link);
+
+    specialFX();
 }
+
+var crap;
+
+function specialFX() {
+    console.log('fxxx');
+
+    const sidebar = document.querySelector('[data-test="search-sidebar"]');
+
+    let overlay = document.getElementById('dj-overlay')
+
+    if(!overlay){
+        overlay = document.createElement('div');
+        overlay.setAttribute('id', 'dj-overlay');
+        sidebar.appendChild(overlay);
+    }
+
+    let clubber = document.getElementById('dj-club-container')
+    if(!clubber){
+        const clubContainer = document.createElement('div');
+        clubContainer.setAttribute('id', 'dj-club-container');
+
+
+        const club = document.createElement('span');
+        club.setAttribute('id', 'dj-club');
+        club.innerText = "Oontz";
+
+        clubContainer.appendChild(club)
+
+        sidebar.appendChild(clubContainer)
+    }
+
+
+    hideStuff(false);
+}
+
+function hideStuff(s) {
+    let overlay = document.getElementById('dj-overlay')
+    if(overlay){
+        if(!s && (overlay.style.display == 'none' || overlay.style.display == '')){
+            overlay.style.display = 'block';
+        } else if(s && (overlay.style.display == 'block')){
+            overlay.style.display = 'none';
+        }
+    }
+
+    let clubber = document.getElementById('dj-club-container')
+    if(clubber){
+        if(!s && (clubber.style.display == 'none' || clubber.style.display == '')){
+            clubber.style.display = 'block';
+        } else if(s && (clubber.style.display == 'block')){
+            clubber.style.display = 'none';
+        }
+    }
+
+        if(!s){
+            if(crap){
+                clearInterval(crap);
+                crap = undefined;
+            }
+
+            crap = setInterval(() => {
+                const images = document.querySelectorAll('[data-test="doctor-card-photo-image"]');
+                for(let i = 0; i < images.length; i++){
+                    images[i].parentNode.parentNode.classList.add('rotate')
+                }
+            }, 500)
+        } else {
+            if(crap){
+                clearInterval(crap);
+                crap = undefined;
+
+            }
+
+            crap = setInterval(() => {
+                const images = document.querySelectorAll('[data-test="doctor-card-photo-image"]');
+                for(let i = 0; i < images.length; i++){
+                    images[i].parentNode.parentNode.classList.remove('rotate')
+                }
+            }, 500)
+
+        }
+
+}
+
+function fuckNo(){
+    Tone.Transport.stop();
+    hideStuff(true)
+
+}
+
+window.addEventListener('click', function(e) {
+    if(Tone.Transport.state == 'started'){
+        fuckNo();
+    }
+});
 
 window.addEventListener('keydown', function (e) {
     if (e.keyCode == 192) {
-        if (e.shiftKey) {
-            Tone.Transport.stop();
+        if(Tone.Transport.state == 'started'){
+            fuckNo();
         } else {
+            Tone.Transport.cancel();
             fuckYeah();
         }
     }
