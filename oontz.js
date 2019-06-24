@@ -24,7 +24,7 @@ function getGrid() {
     const nodes = document.querySelectorAll('[data-location-id]');
     console.log(nodes);
 
-    let grid = []
+    let grid = [];
 
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -41,7 +41,7 @@ function getGrid() {
         if(!nextAvailBtn) {
             nextAvailBtn = node.querySelector('[data-test="ap-desktop-content-preview-doctor-timeslot"]');
         }
-        console.log(nextAvailBtn)
+        console.log(nextAvailBtn);
 
         const name = node.querySelector('[data-test="doctor-card-info-name-full"]');
         console.log(name)
@@ -59,24 +59,24 @@ function getGrid() {
             for (let c = 0; c < cellNodes.length; c++) {
                 const cell = cellNodes[c];
 
-                const data = {}
+                const data = {};
 
                 const tag = cell.firstChild.tagName;
 
-                data.hasTime = !nextAvailBtn && (tag == 'A' || tag == 'BUTTON')
+                data.hasTime = !nextAvailBtn && (tag == 'A' || tag == 'BUTTON');
 
                 data.slot = cell;
                 data.reviewCount = reviewCount;
                 data.nextAvailBtn = nextAvailBtn;
                 data.name = name.innerText;
 
-                row.push(data)
+                row.push(data);
             }
         }
-        console.log(row.map(p => p.hasTime ? 1 : 0))
+        console.log(row.map(p => p.hasTime ? 1 : 0));
 
         if(row.length > 0 ){
-            grid.push(row)
+            grid.push(row);
         }
     }
 
@@ -84,76 +84,6 @@ function getGrid() {
 
     return grid;
 }
-
-function createTestGrid() {
-        //  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-
-    let grid = [
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [1, 1, 0, 1, 0, 1, 1, 0, 1, 1],
-
-         [1, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-         [0, 1, 0, 1, 0, 1, 0, 0, 0, 0],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [1, 1, 0, 1, 0, 1, 1, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-        // [0, 1, 1, 1, 1, 0, 0, 0, 1, 1],
-    ];
-
-    // let actualGrid = [
-    //     // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0],
-    //     [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-    //     [0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0],
-    //     [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-
-    //     [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1],
-    //     [1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1],
-    //     [1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1],
-    //     [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
-
-    //     [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1],
-    //     [1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1],
-    //     [1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1]
-    // ]
-
-    // return grid;
-    let g = grid;
-
-    let output = new Array(g.length);
-    for(let i = 0; i < g.length; i++){
-
-        let row = new Array(g[i].length);
-        for(let j = 0; j < g[i].length; j++){
-            row[j] = {
-                hasTime: g[i][j] == 1,
-                slot: undefined,
-                reviewCount: 100
-            }
-        }
-        output[i] = row;
-    }
-
-    return output;
-}
-
 
 function createSnare() {
     const lowPass = new Tone.Filter({
@@ -788,19 +718,24 @@ function addCss(){
     document.getElementsByTagName('head')[0].appendChild(style);
 }
 
-window.addEventListener('click', function(e) {
-    if(Tone.Transport.state == 'started'){
-        fuckNo();
-    }
-});
-
-window.addEventListener('keydown', function (e) {
-    if (e.keyCode == 192) {
+const script = document.createElement('script');
+script.onload = function () {
+    window.addEventListener('click', function(e) {
         if(Tone.Transport.state == 'started'){
             fuckNo();
-        } else {
-            Tone.Transport.cancel();
-            fuckYeah();
         }
-    }
-});
+    });
+
+    window.addEventListener('keydown', function (e) {
+        if (e.keyCode == 192) {
+            if(Tone.Transport.state == 'started'){
+                fuckNo();
+            } else {
+                Tone.Transport.cancel();
+                fuckYeah();
+            }
+        }
+    });
+};
+script.src = 'https://unpkg.com/tone@13.4.9/build/Tone.js';
+document.head.appendChild(script);
