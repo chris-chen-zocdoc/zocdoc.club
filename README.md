@@ -3,7 +3,7 @@ Here's some really bad code to make some really bad music using the zocdoc searc
 
 Made with <3 at whatever hackathon the June 2019 one was.
 
-# How to oontz
+# how to oontz
 1. Open up [zocdoc.com](https://zocdoc.com)
 2. Do a search
 3. Wait for timesgrid to load
@@ -15,3 +15,6 @@ let s=document.createElement("script");s.type="text/javascript",s.src="https://c
 6. Hit the `~` (its next to the 1 key) to start and stop the "music". Clicking anything will also stop it.
 7. Enjoy
 8. Hit me up with the good beats. I'm a huge fan of the Upper East Side Cardiologists.
+
+## affiliated acts
+http://mustafa.club/
