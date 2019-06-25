@@ -13,8 +13,10 @@ Made with <3 at whatever hackathon the June 2019 one was.
 let s=document.createElement("script");s.type="text/javascript",s.src="https://cc-hackathon-oontz.s3.amazonaws.com/oontz.js?v="+parseInt(99999999*Math.random()),document.head.appendChild(s);
 ```
 6. Hit the `~` (its next to the 1 key) to start and stop the "music". Clicking anything will also stop it.
-7. Enjoy
-8. Hit me up with the good beats. I'm a huge fan of the Upper East Side Cardiologists.
+7. If you reload the page by accident, goto 3
+8. Enjoy!
+
+Hit me up with the good beats. I'm a huge fan of the Upper East Side Cardiologists.
 
 ## affiliated acts
 http://mustafa.club/
